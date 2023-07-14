@@ -1,7 +1,6 @@
 // Define namespace for app code
 var myApp = myApp || {};
 
-// Define app module
 myApp.app = (function () {
 	// Initialize app
 	function init() {
@@ -10,7 +9,6 @@ myApp.app = (function () {
 		apiKeyCheck();
 		removeOldMessages();
 	}
-
 	// Private variables and functions
 	let userInput = document.getElementById('userInput');
 	let saveApiKeyButton = document.getElementById('saveApiKey');
@@ -106,15 +104,15 @@ myApp.app = (function () {
 		}
 
 		// Message retention period (in milliseconds) 1 week
-		
+
 		// Scroll to the bottom
 		messagesContainer.scrollTop = messagesContainer.scrollHeight;
 		messagesHistory.push({ content: message, isUserMessage, timestamp: Date.now() });
 		localStorage.setItem('messagesHistory', JSON.stringify(messagesHistory));
-		
+
 		removeOldMessages();
 	}
-	
+
 	// Deleting old messages
 	function removeOldMessages() {
 		const currentTime = Date.now();
@@ -161,14 +159,8 @@ myApp.app = (function () {
 
 		return formattedLines.join('<br>');
 	}
-
 	// Public API
 	return {
 		init
 	};
 })();
-
-// Initialize app when page loads
-window.addEventListener('DOMContentLoaded', function () {
-	myApp.app.init();
-});
