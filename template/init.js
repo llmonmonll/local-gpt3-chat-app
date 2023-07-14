@@ -13,5 +13,5 @@ myApp.init = (function () {
 
 // Initialize app when page loads
 window.addEventListener('DOMContentLoaded', function () {
-	myApp.app.init();
+	myApp.init.init();
 });
