@@ -1,0 +1,153 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Zen+Maru+Gothic:wght@400;500&display=swap');
+
+body {
+    font-family: 'Poppins', 'Zen Maru Gothic', sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f8f9fa;
+}
+
+h1 {
+    text-align: center;
+    font-size: 24px;
+    color: #1a1a1a;
+    margin-bottom: 20px;
+}
+
+#chatContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+    height: 100%;
+}
+
+#messages {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 auto;
+    width: 100%;
+    max-width: 800px;
+    overflow-y: auto;
+    flex-grow: 1;
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+    padding-bottom: 50px;
+    height: 700px;
+    border: 1px solid #1890ff;
+    box-shadow: 0 0 5px rgba(24, 144, 255, 0.3);
+}
+
+.user-message,
+.ai-message {
+    font-family: 'Poppins', 'Zen Maru Gothic', sans-serif;
+    max-width: 70%;
+    word-wrap: break-word;
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.user-message {
+    align-self: flex-end;
+    background-color: #1890ff;
+    color: #fff;
+    animation: fadeInRight 0.5s ease-in;
+}
+
+.ai-message {
+    align-self: flex-start;
+    background-color: #f0f0f0;
+    color: #1a1a1a;
+    animation: fadeInLeft 0.5s ease-in;
+}
+
+#userInput {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 600px;
+    padding: 10px;
+    margin-top: 10px;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+}
+
+#sendMessage {
+    padding: 8px 16px;
+    margin-top: 10px;
+    border-radius: 4px;
+    background-color: #1890ff;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
+
+#saveApiKey {
+    padding: 8px 16px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    background-color: #1890ff;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
+
+#apiKey {
+    width: 100%;
+    max-width: 800px;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+}
+
+@media screen and (max-width: 600px) {
+    h1 {
+        font-size: 20px;
+    }
+
+    #messages {
+        max-width: 90%;
+    }
+
+    .user-message,
+    .ai-message {
+        max-width: 90%;
+    }
+
+    #userInput {
+        max-width: 90%;
+    }
+
+    #apiKey {
+        max-width: 90%;
+    }
+}
+
+@keyframes fadeInRight {
+    from {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-50%);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
