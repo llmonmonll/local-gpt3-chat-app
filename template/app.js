@@ -4,12 +4,14 @@ var myApp = myApp || {};
 myApp.app = (function () {
 	// Initialize app
 	function init() {
+		inputAPIKey.addEventListener('keypress', handleAPIKeyPress);
 		userInput.addEventListener('keypress', handleKeyPress);
 		saveApiKeyButton.addEventListener('click', saveApiKey);
 		apiKeyCheck();
 		removeOldMessages();
 	}
 	// Private variables and functions
+	let inputAPIKey = document.getElementById('apiKey');
 	let userInput = document.getElementById('userInput');
 	let saveApiKeyButton = document.getElementById('saveApiKey');
 	let messagesContainer = document.getElementById('messages');
@@ -18,10 +20,14 @@ myApp.app = (function () {
 	// Store API keys in local storage
 	function saveApiKey() {
 		const apiKeyInput = document.getElementById('apiKey');
-		const apiKey = apiKeyInput.value;
-		localStorage.setItem('apiKey', apiKey);
-		apiKeyInput.value = '';
-		apiKeyInput.placeholder = '✅API Key found';
+		if (apiKeyInput.value === '') {
+			apiKeyCheck();
+		} else {
+			const apiKey = apiKeyInput.value;
+			localStorage.setItem('apiKey', apiKey);
+			apiKeyInput.value = '';
+			apiKeyInput.placeholder = '✅API Key found';
+		}
 	}
 
 	// Check local storage API keys
@@ -31,6 +37,12 @@ myApp.app = (function () {
 			apiKeyInput.placeholder = '✅API Key found';
 		} else {
 			apiKeyInput.placeholder = '✖API Key not found';
+		}
+	}
+
+	function handleAPIKeyPress(event) {
+		if (event.key === 'Enter') {
+			saveApiKey();
 		}
 	}
 
