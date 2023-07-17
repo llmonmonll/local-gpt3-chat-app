@@ -1,33 +1,32 @@
-// Define namespace for app code
 var myApp = myApp || {};
 
 myApp.app = (() => {
+	// Define namespace for app code
+	const { inputAPIKey, messagesContainer, messagesHistory } = myApp.init;
 	// Store API keys in local storage
 	function saveApiKey() {
-		const apiKeyInput = document.getElementById('apiKey');
-		if (apiKeyInput.value === '') {
+		if (inputAPIKey.value === '') {
 			apiKeyCheck();
 		} else {
-			const apiKey = apiKeyInput.value;
+			const apiKey = inputAPIKey.value;
 			localStorage.setItem('apiKey', apiKey);
-			apiKeyInput.value = '';
-			apiKeyInput.placeholder = '✅API Key found';
+			inputAPIKey.value = '';
+			inputAPIKey.placeholder = '✅API Key found';
 		}
 	}
 
 	// Check local storage API keys
 	function apiKeyCheck() {
-		const apiKeyInput = document.getElementById('apiKey');
 		const apiKey = localStorage.getItem('apiKey');
 
 		if (apiKey) {
 			if (validateApiKey(apiKey)) {
-				apiKeyInput.placeholder = '✅API Key found';
+				inputAPIKey.placeholder = '✅API Key found';
 			} else {
-				apiKeyInput.placeholder = '✖Invalid API Key';
+				inputAPIKey.placeholder = '✖Invalid API Key';
 			}
 		} else {
-			apiKeyInput.placeholder = '✖API Key not found';
+			inputAPIKey.placeholder = '✖API Key not found';
 		}
 	}
 
@@ -99,25 +98,26 @@ myApp.app = (() => {
 		messageElement.className = isUserMessage ? 'user-message' : 'ai-message';
 		messageElement.innerHTML = formatMessage(message);
 
-		myApp.init.messagesContainer.appendChild(messageElement);
+		messagesContainer.appendChild(messageElement);
 
 
 		// Adjust scroll position
 		const userInputRect = userInput.getBoundingClientRect();
 		const userInputBottom = userInputRect.top + userInputRect.height;
-		const messagesContainerRect = myApp.init.messagesContainer.getBoundingClientRect();
+		const messagesContainerRect = messagesContainer.getBoundingClientRect();
 		const messagesContainerTop = messagesContainerRect.top;
 
 		if (userInputBottom > messagesContainerTop) {
-			myApp.init.messagesContainer.scrollTop -= userInputBottom - messagesContainerTop;
+			messagesContainer.scrollTop -= userInputBottom - messagesContainerTop;
 		}
 
-		// Message retention period (in milliseconds) 1 week
-
 		// Scroll to the bottom
-		myApp.init.messagesContainer.scrollTop = myApp.init.messagesContainer.scrollHeight;
-		myApp.init.messagesHistory.push({ content: message, isUserMessage, timestamp: Date.now() });
-		localStorage.setItem('messagesHistory', JSON.stringify(myApp.init.messagesHistory));
+		messagesContainer.scrollTop = messagesContainer.scrollHeight;
+		const existingMessage = messagesHistory.find((m) => m.content === message);
+		if (!existingMessage) {
+			messagesHistory.push({ content: message, isUserMessage, timestamp: Date.now() });
+		}
+		localStorage.setItem('messagesHistory', JSON.stringify(messagesHistory));
 
 		removeOldMessages();
 	}
@@ -125,22 +125,26 @@ myApp.app = (() => {
 	// Deleting old messages
 	function removeOldMessages() {
 		const currentTime = Date.now();
+		// Message retention period (in milliseconds) 1 week
 		const messageRetentionPeriod = 7 * 24 * 60 * 60 * 1000;
-		const updatedMessages = myApp.init.messagesHistory.filter((message) => {
+		const updatedMessages = messagesHistory.filter((message) => {
 			return currentTime - message.timestamp <= messageRetentionPeriod;
 		});
-		myApp.init.messagesHistory = updatedMessages;
-		localStorage.setItem('messagesHistory', JSON.stringify(myApp.init.messagesHistory));
+		messagesHistory.length = 0;
+		updatedMessages.forEach((message) => {
+			messagesHistory.push(message);
+		});
+		localStorage.setItem('messagesHistory', JSON.stringify(messagesHistory));
 	}
 	// Show loading message
 	function showLoadingMessage() {
 		const loadingMessage = document.createElement('p');
 		loadingMessage.id = 'loading-message';
 		loadingMessage.textContent = 'Loading...';
-		myApp.init.messagesContainer.appendChild(loadingMessage);
+		messagesContainer.appendChild(loadingMessage);
 
 		// Scroll to the bottom
-		myApp.init.messagesContainer.scrollTop = myApp.init.messagesContainer.scrollHeight;
+		messagesContainer.scrollTop = messagesContainer.scrollHeight;
 	}
 
 	// Remove loading message
@@ -174,5 +178,6 @@ myApp.app = (() => {
 		saveApiKey,
 		apiKeyCheck,
 		removeOldMessages,
+		showMessage,
 	};
 })();

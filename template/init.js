@@ -6,7 +6,7 @@ myApp.init = (() => {
 	let userInput = document.getElementById('userInput');
 	let saveApiKeyButton = document.getElementById('saveApiKey');
 	let messagesContainer = document.getElementById('messages');
-	let messagesHistory = [];
+	let messagesHistory = JSON.parse(localStorage.getItem('messagesHistory')) || [];
 	// Initialize app
 	function init() {
 		inputAPIKey.addEventListener('keypress', myApp.app.handleAPIKeyPress);
@@ -20,11 +20,27 @@ myApp.init = (() => {
 		init,
 		messagesContainer,
 		messagesHistory,
+		inputAPIKey,
 	};
 })();
 
 // Initialize app when page loads
 window.addEventListener('DOMContentLoaded', () => {
+
 	myApp.init.init();
 	myApp.init.messagesHistory = myApp.init.messagesHistory || [];
+
+	const saveMessages = JSON.parse(localStorage.getItem('messagesHistory')) || [];
+	myApp.init.messagesHistory.length = 0;
+
+	saveMessages.forEach((message) => {
+		const existingMessage = myApp.init.messagesHistory.find((m) => m.content === message.content && m.isUserMessage === message.isUserMessage);
+		if (!existingMessage) {
+			myApp.init.messagesHistory.push(message);
+		}
+	});
+
+	myApp.init.messagesHistory.forEach((message) => {
+		myApp.app.showMessage(message.content, message.isUserMessage);
+	});
 });
