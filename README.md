@@ -16,7 +16,7 @@
 ## 特徴
 
 - AIアシスタントとリアルタイムで対話できます。
-- メッセージはタイムスタンプ付きでチャットコンテナに表示されます。
+- メッセージはチャットコンテナに表示されます。
 - ユーザーのメッセージは青色で表示され、AIの応答は灰色で表示されます。
 - メッセージはローカルストレージに保存されるため、ページをリフレッシュしても会話を続けることができます。
 - 古いメッセージは1週間後に自動的に削除され、チャット履歴が管理しやすくなります。
@@ -56,7 +56,7 @@ To use this application, you need an API key from OpenAI. If you don't have one,
 ## Features
 
 - Chat with the AI assistant and receive responses in real-time.
-- Messages are displayed in a chat container with timestamps.
+- Messages are displayed in the chat container.
 - User messages are shown in blue, and AI responses are shown in gray.
 - Messages are persisted in the local storage, so you can continue your conversation even after refreshing the page.
 - Old messages are automatically removed after one week to keep the chat history manageable.
