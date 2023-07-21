@@ -1,24 +1,27 @@
 var myApp = myApp || {};
 
+
 myApp.app = (() => {
-	// Define namespace for app code
-	const { inputAPIKey, messagesContainer, messagesHistory } = myApp.init;
 	// Store API keys in local storage
 	function saveApiKey() {
+		const apiKey = inputAPIKey.value;
 		if (inputAPIKey.value === '') {
 			apiKeyCheck();
 		} else {
-			const apiKey = inputAPIKey.value;
-			localStorage.setItem('apiKey', apiKey);
-			inputAPIKey.value = '';
-			inputAPIKey.placeholder = '✅API Key found';
+			if (validateApiKey(apiKey)) {
+				localStorage.setItem('apiKey', apiKey);
+				inputAPIKey.value = '';
+				inputAPIKey.placeholder = '✅API Key found';
+			} else {
+				inputAPIKey.value = '';
+				inputAPIKey.placeholder = '✖Invalid API Key';
+			}
 		}
 	}
 
 	// Check local storage API keys
 	function apiKeyCheck() {
 		const apiKey = localStorage.getItem('apiKey');
-
 		if (apiKey) {
 			if (validateApiKey(apiKey)) {
 				inputAPIKey.placeholder = '✅API Key found';
@@ -35,24 +38,54 @@ myApp.app = (() => {
 		return keyFormat.test(apiKey);
 	}
 
+	// Define namespace for app code
+	const { inputAPIKey, messagesContainer, messagesHistory } = myApp.init;
 
-	function handleAPIKeyPress(event) {
-		if (event.key === 'Enter') {
-			saveApiKey();
-		}
-	}
 
 	// Handle key press event
 	function handleKeyPress(event) {
-		if (event.key === 'Enter') {
-			sendMessage();
+		const isEnterKey = event.key === 'Enter';
+		const isAPIKeyInput = document.activeElement === inputAPIKey;
+
+		if (isEnterKey) {
+			if (isAPIKeyInput) {
+				saveApiKey();
+			} else {
+				sendMessage();
+			}
 		}
+	}
+
+	function handleMouseDown(event) {
+		const isEnterKey = event.type === 'click';
+		const isAPIKeyInput = document.getElementById('saveApiKey');
+
+		if (isEnterKey) {
+			if (isAPIKeyInput) {
+				saveApiKey();
+			} else {
+				sendMessage();
+			}
+		}
+	}
+
+	function validateUserInput(message) {
+		if (message.trim() === '') {
+			return false;
+		}
+		const maxMessageLength = 200;
+		if (message.length > maxMessageLength) {
+			return false;
+		}
+		return true;
 	}
 
 	// Send user message to AI and display the response
 	async function sendMessage() {
 		const message = userInput.value;
-		showMessage(message, true);
+		if (!validateUserInput(message)) {
+			return;
+		}
 		userInput.value = '';
 
 		const apiKey = localStorage.getItem('apiKey');
@@ -69,9 +102,12 @@ myApp.app = (() => {
 			]
 		};
 
+		let isError = false;
+
 		try {
 			// Show loading message
 			showLoadingMessage();
+
 
 			const response = await fetch(endpointUrl, {
 				method: 'POST',
@@ -86,22 +122,62 @@ myApp.app = (() => {
 			// Remove loading message
 			removeLoadingMessage();
 		} catch (error) {
-			console.error('Error:', error);
+			alert('!!! Something went wrong. Please try again later. !!!');
 			// Remove loading message on error
 			removeLoadingMessage();
+			isError = true;
+		}
+		if (!isError) {
+			setTimeout(() => {
+				showMessage(message, true);
+			}, 1000);
 		}
 	}
 
 	// Display message in the chat container
 	function showMessage(message, isUserMessage) {
+		const messageElement = createMessageElement(message, isUserMessage);
+		appendMessageElement(messageElement);
+		adjustScrollPosition();
+		saveMessageHistory(message, isUserMessage);
+		removeOldMessages();
+	}
+
+	function createMessageElement(message, isUserMessage) {
 		const messageElement = document.createElement('p');
 		messageElement.className = isUserMessage ? 'user-message' : 'ai-message';
-		messageElement.innerHTML = formatMessage(message);
 
+		const logoContainer = document.createElement('div');
+		logoContainer.className = 'logo-container';
+
+		// Add logo to message block
+		const logo = document.createElement('img');
+		logo.setAttribute('alt', 'LocalChatGPT');
+		logo.setAttribute('src', './template/chatgpt-icon.svg'); // Free .svg icons
+		logo.setAttribute('class', 'message-logo');
+		logo.setAttribute('viewBox', '0 0 41 41');
+		logo.setAttribute('fill', 'none');
+		logo.setAttribute('width', '32px');
+		logo.setAttribute('height', '32px');
+		if (!isUserMessage) {
+			logoContainer.appendChild(logo);
+		} else {
+			appendMessageElement(messageElement);
+		}
+		// Add message content to message block
+		const content = document.createElement('span');
+		content.innerHTML = formatMessage(message);
+		messageElement.appendChild(logoContainer);
+		messageElement.appendChild(content);
+
+		return messageElement;
+	}
+
+	function appendMessageElement(messageElement) {
 		messagesContainer.appendChild(messageElement);
+	}
 
-
-		// Adjust scroll position
+	function adjustScrollPosition() {
 		const userInputRect = userInput.getBoundingClientRect();
 		const userInputBottom = userInputRect.top + userInputRect.height;
 		const messagesContainerRect = messagesContainer.getBoundingClientRect();
@@ -111,15 +187,15 @@ myApp.app = (() => {
 			messagesContainer.scrollTop -= userInputBottom - messagesContainerTop;
 		}
 
-		// Scroll to the bottom
 		messagesContainer.scrollTop = messagesContainer.scrollHeight;
+	}
+
+	function saveMessageHistory(message, isUserMessage) {
 		const existingMessage = messagesHistory.find((m) => m.content === message);
 		if (!existingMessage) {
 			messagesHistory.push({ content: message, isUserMessage, timestamp: Date.now() });
 		}
 		localStorage.setItem('messagesHistory', JSON.stringify(messagesHistory));
-
-		removeOldMessages();
 	}
 
 	// Deleting old messages
@@ -127,13 +203,8 @@ myApp.app = (() => {
 		const currentTime = Date.now();
 		// Message retention period (in milliseconds) 1 week
 		const messageRetentionPeriod = 7 * 24 * 60 * 60 * 1000;
-		const updatedMessages = messagesHistory.filter((message) => {
-			return currentTime - message.timestamp <= messageRetentionPeriod;
-		});
-		messagesHistory.length = 0;
-		updatedMessages.forEach((message) => {
-			messagesHistory.push(message);
-		});
+		const updatedMessages = messagesHistory.filter(message => currentTime - message.timestamp <= messageRetentionPeriod);
+		messagesHistory.splice(0, messagesHistory.length, ...updatedMessages);
 		localStorage.setItem('messagesHistory', JSON.stringify(messagesHistory));
 	}
 	// Show loading message
@@ -141,9 +212,11 @@ myApp.app = (() => {
 		const loadingMessage = document.createElement('p');
 		loadingMessage.id = 'loading-message';
 		loadingMessage.textContent = 'Loading...';
-		messagesContainer.appendChild(loadingMessage);
+		userInput.disabled = true;
+		userInput.placeholder = 'Loading...';
+		previousPlaceholder = userInput.placeholder;
 
-		// Scroll to the bottom
+		messagesContainer.insertAdjacentElement('beforeend', loadingMessage);
 		messagesContainer.scrollTop = messagesContainer.scrollHeight;
 	}
 
@@ -152,31 +225,57 @@ myApp.app = (() => {
 		const loadingMessage = document.getElementById('loading-message');
 		if (loadingMessage) {
 			loadingMessage.remove();
+			userInput.disabled = false;
+			userInput.placeholder = 'Send your message...';
+			userInput.focus();
 		}
 	}
 
-	// Format message to include line breaks for bullet points
 	function formatMessage(message) {
-		const bulletPointRegex = /^\s*-\s*/;
-		const lines = String(message).split('\n');
-		const formattedLines = lines.map(line => {
-			if (bulletPointRegex.test(line)) {
-				return `<li>${line.replace(bulletPointRegex, '')}</li>`;
-			}
-			return line;
-		});
+		const codeBlockRegex = /```([\s\S]+?)```/g;
+		const bulletListRegex = /(.+)(?:\n\s*- )(.+)/g;
+		const emphasisRegex = /`([^`]+)`/g;
+		const colonRegex = /[:：]\s*(.+)/g;
 
-		if (formattedLines.some(line => line.startsWith('<li>'))) {
-			return `<ul>${formattedLines.join('')}</ul>`;
-		}
+		const formattedMessage = message
+			.replace(codeBlockRegex, (match, code) => {
+				const escapedCode = escapeHTML(code.trim());
+				return `<pre style="background-color: #f3f3f3; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">${escapedCode}</pre>`;
+			})
+			.replace(bulletListRegex, (match, precedingText, listItem) => {
+				return `${precedingText}\n- ${listItem}`;
+			})
+			.replace(emphasisRegex, (match, text) => {
+				return `<code>${text}</code>`;
+			})
+			.replace(colonRegex, (match, followingText) => {
+				return `：<br>　${followingText}`;
+			});
 
-		return formattedLines.join('<br>');
+		return formattedMessage.replace(/\n/g, '<br>');
 	}
+
+	function escapeHTML(text) {
+		return text.replace(/[&<>"']/g, (match) => {
+			switch (match) {
+				case '&':
+					return '&amp;';
+				case '<':
+					return '&lt;';
+				case '>':
+					return '&gt;';
+				case '"':
+					return '&quot;';
+				case "'":
+					return '&#039;';
+			}
+		});
+	}
+
 	return {
-		handleAPIKeyPress,
-		handleKeyPress,
-		saveApiKey,
 		apiKeyCheck,
+		handleKeyPress,
+		handleMouseDown,
 		removeOldMessages,
 		showMessage,
 	};

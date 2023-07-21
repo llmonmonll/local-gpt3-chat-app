@@ -9,9 +9,13 @@ myApp.init = (() => {
 	let messagesHistory = JSON.parse(localStorage.getItem('messagesHistory')) || [];
 	// Initialize app
 	function init() {
-		inputAPIKey.addEventListener('keypress', myApp.app.handleAPIKeyPress);
-		userInput.addEventListener('keypress', myApp.app.handleKeyPress);
-		saveApiKeyButton.addEventListener('click', myApp.app.saveApiKey);
+		messagesContainer.addEventListener('click', (event) => {
+			if (event.target === userInput || event.target === inputAPIKey) {
+				return;
+			}
+		});
+		document.addEventListener('keypress', myApp.app.handleKeyPress);
+		saveApiKeyButton.addEventListener('click', myApp.app.handleMouseDown);
 		myApp.app.apiKeyCheck();
 		myApp.app.removeOldMessages();
 	}

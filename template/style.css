@@ -50,6 +50,7 @@ h1 {
 }
 
 .user-message {
+    display: flex;
     align-self: flex-end;
     background-color: #1890ff;
     color: #fff;
@@ -57,15 +58,22 @@ h1 {
 }
 
 .ai-message {
+    display: flex;
     align-self: flex-start;
     background-color: #f0f0f0;
     color: #1a1a1a;
     animation: fadeInLeft 0.5s ease-in;
 }
 
+.ai-message .logo-container {
+    display: flex;
+    vertical-align: text-top;
+    margin-right: 8px;
+}
+
 #userInput {
     position: fixed;
-    bottom: 20px;
+    bottom: 25px;
     left: 50%;
     transform: translateX(-50%);
     width: 100%;
@@ -136,7 +144,7 @@ h1 {
 
     to {
         opacity: 1;
-        transform: translateX(0);
+        transform: translateX(5px);
     }
 }
 
@@ -148,6 +156,6 @@ h1 {
 
     to {
         opacity: 1;
-        transform: translateX(0);
+        transform: translateX(-5px);
     }
 }
