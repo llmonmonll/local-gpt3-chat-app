@@ -2,6 +2,9 @@ var myApp = myApp || {};
 
 
 myApp.app = (() => {
+	// Define namespace for app code
+	const { inputAPIKey, messagesContainer, messagesHistory } = myApp.init;
+
 	// Store API keys in local storage
 	function saveApiKey() {
 		const apiKey = inputAPIKey.value;
@@ -37,9 +40,6 @@ myApp.app = (() => {
 		const keyFormat = /^sk-[A-Za-z0-9]+$/;
 		return keyFormat.test(apiKey);
 	}
-
-	// Define namespace for app code
-	const { inputAPIKey, messagesContainer, messagesHistory } = myApp.init;
 
 
 	// Handle key press event
