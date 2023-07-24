@@ -1,10 +1,9 @@
 var myApp = myApp || {};
 
-
 myApp.app = (() => {
 	// Define namespace for app code
 	const { inputAPIKey, messagesContainer } = myApp.api;
-	let { userMessage } = myApp.api;
+	let { userMessage, userInput } = myApp.api;
 	const { messagesHistory } = myApp.init;
 
 	// Store API keys in local storage
