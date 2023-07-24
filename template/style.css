@@ -39,6 +39,16 @@ h1 {
     box-shadow: 0 0 5px rgba(24, 144, 255, 0.3);
 }
 
+.code-block {
+    font-family:'Courier New', Courier, monospace;
+    background-color: #f8f9fa;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+    box-shadow: 0 0 10px rgba(24, 144, 255, 0.3);
+}
+
 .user-message,
 .ai-message {
     font-family: 'Poppins', 'Zen Maru Gothic', sans-serif;

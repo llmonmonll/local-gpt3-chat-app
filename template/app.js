@@ -3,7 +3,9 @@ var myApp = myApp || {};
 
 myApp.app = (() => {
 	// Define namespace for app code
-	const { inputAPIKey, messagesContainer, messagesHistory } = myApp.init;
+	const { inputAPIKey, messagesContainer } = myApp.api;
+	let { userMessage } = myApp.api;
+	const { messagesHistory } = myApp.init;
 
 	// Store API keys in local storage
 	function saveApiKey() {
@@ -86,9 +88,17 @@ myApp.app = (() => {
 		if (!validateUserInput(message)) {
 			return;
 		}
+		userMessage = message;
 		userInput.value = '';
-
 		const apiKey = localStorage.getItem('apiKey');
+		if (!apiKey) {
+			userInput.placeholder = '✖API Key not found';
+			const userMessageElement = messagesContainer.querySelector('.user-message');
+			if (userMessageElement) {
+				messagesContainer.removeChild(userMessageElement);
+			}
+			return;
+		}
 		const endpointUrl = 'https://api.openai.com/v1/chat/completions';
 		const headers = {
 			'Content-Type': 'application/json',
@@ -101,36 +111,46 @@ myApp.app = (() => {
 				{ role: 'user', content: message }
 			]
 		};
-
 		let isError = false;
-
 		try {
+			showMessage(message, true);
 			// Show loading message
 			showLoadingMessage();
-
-
 			const response = await fetch(endpointUrl, {
 				method: 'POST',
 				headers: headers,
 				body: JSON.stringify(data)
 			});
-
-			const responseData = await response.json();
-			const aiMessage = responseData.choices[0].message.content;
-			showMessage(aiMessage, false);
-
-			// Remove loading message
-			removeLoadingMessage();
+			if (!response.ok) {
+				isError = true;
+				const userMessageElement = messagesContainer.querySelector('.user-message');
+				if (userMessageElement) {
+					messagesContainer.removeChild(userMessageElement);
+				}
+				throw new Error('!!! Something went wrong. Please try again later. !!!');
+			} else {
+				const responseData = await response.json();
+				const aiMessage = responseData.choices[0].message.content;
+				showMessage(aiMessage, false);
+				// Remove loading message
+				removeLoadingMessage();
+			}
 		} catch (error) {
 			alert('!!! Something went wrong. Please try again later. !!!');
 			// Remove loading message on error
 			removeLoadingMessage();
 			isError = true;
-		}
-		if (!isError) {
-			setTimeout(() => {
-				showMessage(message, true);
-			}, 1000);
+			if (!isError) {
+				const existingMessage = messagesHistory.find((m) => m.content === userMessage && m.isUserMessage === true);
+				if (!existingMessage) {
+					messagesHistory.push({ content: userMessage, isUserMessage: true, timestamp: Date.now() });
+					localStorage.setItem('messagesHistory', JSON.stringify(messagesHistory));
+				}
+				if (!existingMessage) {
+					messagesHistory.push({ content: userMessage, isUserMessage: false, timestamp: Date.now() });
+					localStorage.setItem('messagesHistory', JSON.stringify(messagesHistory));
+				}
+			}
 		}
 	}
 
@@ -182,11 +202,12 @@ myApp.app = (() => {
 		const userInputBottom = userInputRect.top + userInputRect.height;
 		const messagesContainerRect = messagesContainer.getBoundingClientRect();
 		const messagesContainerTop = messagesContainerRect.top;
-
+		const aiMessages = messagesContainer.getElementsByClassName('ai-message');
 		if (userInputBottom > messagesContainerTop) {
-			messagesContainer.scrollTop -= userInputBottom - messagesContainerTop;
+			messagesContainer.scrollTop += userInputBottom - messagesContainerTop;
 		}
 
+		// Scroll to the bottom of the messages container
 		messagesContainer.scrollTop = messagesContainer.scrollHeight;
 	}
 
@@ -235,12 +256,12 @@ myApp.app = (() => {
 		const codeBlockRegex = /```([\s\S]+?)```/g;
 		const bulletListRegex = /(.+)(?:\n\s*- )(.+)/g;
 		const emphasisRegex = /`([^`]+)`/g;
-		const colonRegex = /[:：]\s*(.+)/g;
+		const colonRegex = /([^：:]):([^：:])/g;
 
 		const formattedMessage = message
 			.replace(codeBlockRegex, (match, code) => {
 				const escapedCode = escapeHTML(code.trim());
-				return `<pre style="background-color: #f3f3f3; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">${escapedCode}</pre>`;
+				return `<pre class="code-block">${escapedCode}</pre>`;
 			})
 			.replace(bulletListRegex, (match, precedingText, listItem) => {
 				return `${precedingText}\n- ${listItem}`;
@@ -248,8 +269,8 @@ myApp.app = (() => {
 			.replace(emphasisRegex, (match, text) => {
 				return `<code>${text}</code>`;
 			})
-			.replace(colonRegex, (match, followingText) => {
-				return `：<br>　${followingText}`;
+			.replace(colonRegex, (match, precedingText, followingText) => {
+				return `${precedingText}：${followingText}`;
 			});
 
 		return formattedMessage.replace(/\n/g, '<br>');
