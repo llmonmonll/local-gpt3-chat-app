@@ -40,8 +40,9 @@ h1 {
 }
 
 .code-block {
-    font-family:'Courier New', Courier, monospace;
+    font-family: monospace, sans-serif;
     background-color: #f8f9fa;
+    margin: 0 auto;
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 4px;
@@ -52,7 +53,7 @@ h1 {
 .user-message,
 .ai-message {
     font-family: 'Poppins', 'Zen Maru Gothic', sans-serif;
-    max-width: 70%;
+    max-width: 80%;
     word-wrap: break-word;
     margin: 10px 0;
     padding: 10px;

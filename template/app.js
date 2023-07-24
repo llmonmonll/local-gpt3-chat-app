@@ -130,7 +130,8 @@ myApp.app = (() => {
 			} else {
 				const responseData = await response.json();
 				const aiMessage = responseData.choices[0].message.content;
-				showMessage(aiMessage, false);
+				const formattedAiMessage = formatMessage(aiMessage);
+				showMessage(formattedAiMessage, false);
 				// Remove loading message
 				removeLoadingMessage();
 			}
@@ -145,7 +146,8 @@ myApp.app = (() => {
 					messagesHistory.push({ content: userMessage, isUserMessage: true, timestamp: Date.now() });
 					localStorage.setItem('messagesHistory', JSON.stringify(messagesHistory));
 				}
-				if (!existingMessage) {
+				const existingAiMessage = messagesHistory.find((m) => m.content === userMessage && m.isUserMessage === false);
+				if (!existingAiMessage) {
 					messagesHistory.push({ content: userMessage, isUserMessage: false, timestamp: Date.now() });
 					localStorage.setItem('messagesHistory', JSON.stringify(messagesHistory));
 				}
@@ -253,23 +255,32 @@ myApp.app = (() => {
 
 	function formatMessage(message) {
 		const codeBlockRegex = /```([\s\S]+?)```/g;
-		const bulletListRegex = /(.+)(?:\n\s*- )(.+)/g;
+		const bulletListRegex = /(?:\n\s*[\-・]\s*)(.+)/g;
 		const emphasisRegex = /`([^`]+)`/g;
-		const colonRegex = /([^：:]):([^：:])/g;
+		const colonRegex = /([^：]):([^：])/g;
+		const halfColonRegex = /([^:]):([^:])/g;
+		const codeRegex = /<code>([\s\S]+?)<\/code>/g;
 
 		const formattedMessage = message
 			.replace(codeBlockRegex, (match, code) => {
 				const escapedCode = escapeHTML(code.trim());
 				return `<pre class="code-block">${escapedCode}</pre>`;
 			})
-			.replace(bulletListRegex, (match, precedingText, listItem) => {
-				return `${precedingText}\n- ${listItem}`;
+			.replace(bulletListRegex, (match, listItem) => {
+				return `<li>${escapeHTML(listItem)}</li>`;
 			})
 			.replace(emphasisRegex, (match, text) => {
 				return `<code>${text}</code>`;
 			})
 			.replace(colonRegex, (match, precedingText, followingText) => {
 				return `${precedingText}：${followingText}`;
+			})
+			.replace(halfColonRegex, (match, precedingText, followingText) => {
+				return `${precedingText}:<br>${followingText}`;
+			})
+			.replace(codeRegex, (match, code) => {
+				const escapedCode = escapeHTML(code.trim());
+				return `<pre class="code-block">${escapedCode}</pre>`;
 			});
 
 		return formattedMessage.replace(/\n/g, '<br>');
