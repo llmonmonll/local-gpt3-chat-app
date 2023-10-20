@@ -5,7 +5,6 @@ twitch.tv###ad
 twitch.tv##.adblock-overlay
 twitch.tv##.player-adblock-notice
 twitch.tv##.video-ads
-twitch.tv##.player-adblock-notice
 twitch.tv##div[data-test-selector="sda-wrapper"]
 twitch.tv##div[data-test-selector="sad-overlay"]
 twitch.tv##div[data-a-target="ax-overlay"]
